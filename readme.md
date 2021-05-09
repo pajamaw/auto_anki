@@ -7,7 +7,6 @@ I imagine I'd tag them and then upon adding the tag an operation would occur tha
 possibly be able to update to those cards
 
 
-
 requirements
 
 tags that trigger on notes after certain amount of time
