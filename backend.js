@@ -82,7 +82,41 @@ const addCards = (cards) => (
       }
     }
   customInvoke(request);
-);
+)
+
+async function convertTrilliumNotes() {
+    return await api.runOnServer(async () => {
+        // First we search for the notes
+        let notes = await api.searchForNotes('#anki #!anki_complete');
+        let completedCards = [];
+        let errors = [];
+        // Once we have the notes we get the individual attributes of the notes
+        for (note in notes) {
+            try {
+                let content = await note.getContent();
+                let tags = await note.getAttributes();
+                let filteredTags = filterAttributes(tags);
+                // We create the json for each note 
+                let card = createCard('Programming Interviews', 'Basic', note.title, content, filteredTags);
+                // Assuming it was created we add a new label to the note so it's not fetched in the future
+                await note.addAttribute('label', 'anki_complete');
+                // Then we add to completed deck
+                completedCards << card;
+            } catch (e) {
+                errors << e;
+            }
+        }
+        if (errors.length) api.log(errors);
+        // Log the errors then add the cards to the deck
+        return await addCards(completedCards);
+    })
+}
+
+const filterAttributes = (tags) => (
+    tags.map(tag => tag.name)
+)
+{"attributeId":"mrdlYB2MGByh","noteId":"fyA1a9M1b6XI","type":"label","name":"programming","value":"","position":10,"utcDateCreated":"2021-03-03 15:37:54.252Z","utcDateModified":"2021-03-03 15:37:54.253Z","isDeleted":false,"deleteId":null,"hash":"kVzQTORR1w","isInheritable":false}
+
 
 
   // {
@@ -175,50 +209,3 @@ const addCards = (cards) => (
 //       ]
 //   }
 // }
-
-// {
-//   "action": "addNote",
-//   "version": 6,
-//   "params": {
-//       "note": {
-//         "deckName": "Default",
-//         "modelName": "Basic",
-//         "fields": {
-//             "Front": "front content",
-//             "Back": "back content"
-//         },
-//         "tags": [
-//             "yomichan"
-//         ],
-//         "audio": [{
-//             "url": "https://assets.languagepod101.com/dictionary/japanese/audiomp3.php?kanji=猫&kana=ねこ",
-//             "filename": "yomichan_ねこ_猫.mp3",
-//             "skipHash": "7e2c2f954ef6051373ba916f000168dc",
-//             "fields": [
-//      "Front"
-//             ]
-//         }],
-//         "video": [{
-//             "url": "https://cdn.videvo.net/videvo_files/video/free/2015-06/small_watermarked/Contador_Glam_preview.mp4",
-//             "filename": "countdown.mp4",
-//             "skipHash": "4117e8aab0d37534d9c8eac362388bbe",
-//             "fields": [
-//      "Back"
-//             ]
-//         }],
-//         "picture": [{
-//             "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/A_black_cat_named_Tilly.jpg/220px-A_black_cat_named_Tilly.jpg",
-//             "filename": "black_cat.jpg",
-//             "skipHash": "8d6e4646dfae812bf39651b59d7429ce",
-//             "fields": [
-//      "Back"
-//             ]
-//         }]
-//     }
-//   }
-// }
-
-// VS ADD NOTE
-// await invoke('createDeck', {deck: 'test1'});
-// const result = await invoke('deckNames', 6);
-// console.log(`got list of decks: ${result}`);
